@@ -117,6 +117,20 @@ const buttonClasses = {
     "update": ["on_off"]
 };
 
+// Function to wait for user input and close when 'exit' is typed
+function waitForExit() {
+    rl.question("Type 'exit' to close the program: ", (answer) => {
+        if (answer.toLowerCase() === 'exit') {
+            console.log("Exiting the program...");
+            rl.close(); // Close the readline interface
+            process.exit(); // Exit the process
+        } else {
+            console.log("Invalid input. Type 'exit' to close.");
+            waitForExit(); // Recursively ask again if input isn't 'exit'
+        }
+    });
+}
+
 // Generate a unique ID
 function generateUniqueId(devTyp, devName) {
     const randomString = crypto.randomBytes(2).toString('hex').toUpperCase();
@@ -300,7 +314,8 @@ async function createDeviceConfig() {
     console.log("\nGenerated Device State Update Topic:");
     console.log(JSON.stringify(statT, null, 2));
 
-    rl.close();
+    // After generating the config, wait for the user to type 'exit' to close
+    waitForExit();
 }
 
 createDeviceConfig();
