@@ -78,6 +78,45 @@ const sensorClasses = {
     "wind_speed": ["Beaufort", "ft/s", "km/h", "kn", "m/s", "mph"]
 };
 
+const binarySensorClasses = {
+    "none": ["on_off"],
+    "battery": ["on_off"],
+    "battery_charging": ["on_off"],
+    "carbon_monoxide": ["on_off"],
+    "cold": ["on_off"],
+    "connectivity": ["on_off"],
+    "door": ["on_off"],
+    "garage_door": ["on_off"],
+    "gas": ["on_off"],
+    "heat": ["on_off"],
+    "light": ["on_off"],
+    "lock": ["on_off"],
+    "moisture": ["on_off"],
+    "motion": ["on_off"],
+    "moving": ["on_off"],
+    "occupancy": ["on_off"],
+    "opening": ["on_off"],
+    "plug": ["on_off"],
+    "power": ["on_off"],
+    "presence": ["on_off"],
+    "problem": ["on_off"],
+    "running": ["on_off"],
+    "safety": ["on_off"],
+    "smoke": ["on_off"],
+    "sound": ["on_off"],
+    "tamper": ["on_off"],
+    "update": ["on_off"],
+    "vibration": ["on_off"],
+    "window": ["on_off"]
+};
+
+const buttonClasses = {
+    "None": ["on_off"],
+    "identify": ["on_off"],
+    "restart": ["on_off"],
+    "update": ["on_off"]
+};
+
 // Generate a unique ID
 function generateUniqueId(devTyp, devName) {
     const randomString = crypto.randomBytes(2).toString('hex').toUpperCase();
@@ -150,6 +189,56 @@ async function createDeviceConfig() {
         }
     }
 
+    if (devTyp === "Binary Sensor") {
+    console.log("\nChoose a binary sensor class from the following options:");
+    Object.keys(binarySensorClasses).forEach((sensor, index) => {
+        console.log(`${index + 1}. ${sensor}`);
+    });
+
+    const sensorClassChoice = await promptQuestion("\nEnter the number corresponding to the binary sensor class: ");
+    const sensorClassKey = Object.keys(binarySensorClasses)[parseInt(sensorClassChoice) - 1];
+    
+    if (!sensorClassKey) {
+        console.log("Invalid binary sensor class.");
+        rl.close();
+        return;
+    }
+
+    sensorType = sensorClassKey; // Store the selected binary sensor class
+
+    // Step 4: Allow the user to pick the state (on/off) for the binary sensor
+    const availableStates = binarySensorClasses[sensorType];
+    console.log(`\nChoose a state for ${sensorType}:`);
+    availableStates.forEach((state, index) => {
+        console.log(`${index + 1}. ${state}`);
+    });
+
+    const stateChoice = await promptQuestion("\nEnter the number corresponding to the state (on/off): ");
+    stateOfSensor = availableStates[parseInt(stateChoice) - 1];
+
+    valTpl = "{{ value_json.value }}";
+    }
+
+    if (devTyp === "Button") {
+    console.log("\nChoose a button class from the following options:");
+    Object.keys(buttonClasses).forEach((sensor, index) => {
+        console.log(`${index + 1}. ${sensor}`);
+    });
+
+    const sensorClassChoice = await promptQuestion("\nEnter the number corresponding to the button class: ");
+    const sensorClassKey = Object.keys(buttonClasses)[parseInt(sensorClassChoice) - 1];
+    
+    if (!sensorClassKey) {
+        console.log("Invalid button class.");
+        rl.close();
+        return;
+    }
+
+    sensorType = sensorClassKey; // Store the selected binary sensor class
+
+    valTpl = "{{ value_json.value }}";
+    }    
+    
     // Step 5: Unique ID generation
     const uniqueIdChoice = await promptQuestion("Do you want to enter a unique ID manually? (yes/no): ");
     let uniqueId;
@@ -205,8 +294,11 @@ async function createDeviceConfig() {
     console.log("\nGenerated JSON Config:");
     console.log(JSON.stringify(deviceConfig, null, 2));
 
-    console.log("\nGenerated Topic:");
+    console.log("\nGenerated Configuration Topic:");
     console.log(JSON.stringify(Topic, null, 2));
+
+    console.log("\nGenerated Device State Update Topic:");
+    console.log(JSON.stringify(statT, null, 2));
 
     rl.close();
 }
